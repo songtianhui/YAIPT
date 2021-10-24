@@ -91,14 +91,32 @@ def interpolate(img: ndarray) -> ndarray:
     else:
         return interpolate_channel(img)
 
+
+def dft_ori(img):
+    return np.fft.fftshift(np.fft.fft2(img))
+
 def dft(img: ndarray) -> ndarray:
-    print(img.ndim)
-    return np.log(np.abs(np.fft.fftshift(np.fft.fft2(img))))
+    return np.log(np.abs(dft_ori(img)))
 
 
 def butterworth(img: ndarray) -> ndarray:
-    return None
+    h, w = img.shape
+    M, N = h // 2, w // 2
+    F = dft_ori(img)
+    d0 = (h + w) // 10
+    H = np.zeros_like(F)
+    # t = np.array(np.meshgrid(range(h),range(w))).transpose([2,1,0])
+    # f = lambda x: 1 / (1 + (np.linalg.norm((x[0] - M, x[1] - N)) / d0) ** 4)
+    # t = f(t)
 
+    for i in range(h):
+        for j in range(w):
+            d = np.linalg.norm((i - M, j - N))
+            H[i, j] = 1 / (1 + (d / d0) ** 4)
+    G = np.multiply(F, H)
+
+    # return np.log(np.abs(G))
+    return np.abs(np.fft.ifft2(np.fft.ifftshift(G)))
 
 def canny(img: ndarray) -> ndarray:
     return None
