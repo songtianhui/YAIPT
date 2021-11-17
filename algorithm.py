@@ -1,7 +1,4 @@
-import matplotlib.pyplot as plt
 import numpy as np
-# import cv2
-# import scipy.ndimage
 from numpy import ndarray
 
 def merge(img, func_channel, *args):
@@ -190,4 +187,39 @@ def canny(img: ndarray) -> ndarray:
 
 
 def morphology(img: ndarray) -> ndarray:
-    return None
+    def dilate(img, kernel):
+        a = kernel.shape[0]
+        pad_num = (a - 1) // 2
+        image_pad = img.copy()
+        image_pad = np.pad(image_pad, (pad_num, pad_num), mode='constant')
+        w, h = image_pad.shape
+        out = image_pad.copy()
+
+        for i in range(pad_num, w - pad_num):
+            for j in range(pad_num, h - pad_num):
+                if np.multiply(image_pad[i - pad_num:i + pad_num + 1, j - pad_num:j + pad_num + 1], kernel).sum() >= 1:
+                    out[i, j] = 1
+
+        out = out[pad_num:w - pad_num, pad_num:h - pad_num]
+        return out
+    
+    def erode(img, kernel):
+        a = kernel.shape[0]
+        pad_num = (a - 1) // 2
+        image_pad = img.copy()
+        image_pad = np.pad(image_pad, (pad_num, pad_num), mode='constant')
+        w, h = image_pad.shape
+        out = image_pad.copy()
+
+        for i in range(pad_num, w - pad_num):
+            for j in range(pad_num, h - pad_num):
+                if np.multiply(image_pad[i - pad_num:i + pad_num + 1, j - pad_num:j + pad_num + 1], kernel).sum() < 4:
+                    out[i, j] = 0
+
+        out = out[pad_num:w - pad_num, pad_num:h - pad_num]
+        return out
+
+
+    img = (img > 0.5).astype(np.float32)
+    kernel = np.array([0,1,0,1,0,1,0,1,0]).reshape((3,3))
+    return dilate(erode(img, kernel), kernel)
